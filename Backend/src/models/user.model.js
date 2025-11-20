@@ -35,8 +35,34 @@ UserSchema.pre("save",async function (next){
     this.password=bcrypt.hash(this.password,12);
     next();
 })
+
 UserSchema.methods.ispasswordCorrect=async function(password){
    return await bcrypt.compare(password,this.password);
 
+}
+
+UserSchema.methods.generateAccessToken=async function(){
+    jwt.sign({
+        _id:this._id,
+        Username:this.Username,
+        email:this.email
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+       expiresIn:process.env.ACCESS_TOKEN_EXPIRY
+        
+    })
+}
+//REFRESH TOKEN KA PAYLOAD MN INFO KAM HOTI HA OR EXPIRY DATE ZIYADA HOTI HA
+
+UserSchema.methods.generateRefreshToken=async function(){
+    jwt.sign({
+        _id:this._id,
+    },
+    process.env.REFRESH_TOKEN,
+    {
+       expiresIn:process.env.REFRESH_TOKEN_EXPIRY
+        
+    })
 }
 export const User=mongoose.model("User",UserSchema);
