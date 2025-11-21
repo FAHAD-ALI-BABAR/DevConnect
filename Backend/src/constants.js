@@ -1,1 +1,1 @@
-export const DB_NAME="DevConnectDB"
+export const DB_NAME="devconnect"

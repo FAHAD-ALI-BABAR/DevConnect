@@ -13,7 +13,7 @@ cloudinary.config({
             const fileuploadresponse=await cloudinary.uploader.upload(localfilepath,{
                 resource_type:"auto"
             })
-            console.log("file has been uploaded on cloudinary successfully :", fileuploadresponse);
+            console.log("file has been uploaded on cloudinary successfully :", fileuploadresponse.url);
             return fileuploadresponse
             
             
