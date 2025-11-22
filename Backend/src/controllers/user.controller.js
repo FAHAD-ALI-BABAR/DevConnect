@@ -55,4 +55,63 @@ return res.status(201).json({
     }
     
 }
-export {registerUser}
+
+const generateAccessTokenAndRefreshtoken=async(userId)=>{
+    try {
+        const user=await User.findById(userId)
+        const accesstoken=user.generateAccessToken()
+        const refreshtoken=user.generateRefreshToken()
+        await user.save({validateBeforeSave:false})
+        return {accesstoken,refreshtoken}
+
+        
+    } catch (error) {
+        console.log("error in generating token :" ,error);
+        
+        return res.status(500).json({message:"error in generating tokens"})
+        
+    }
+}
+
+const loginUser=async (req,res)=>{
+    try {
+        const {email,password,Username}=req.body
+        if(!email || !Username) return res.status(400).json({message:"please enter email or password"})
+            const userfind=await User.findOne({
+                $or:[{email:email},{Username:Username}]
+            })
+
+            if(!userfind) return res.status(404).json({message:"User doesnot exist so can't login"})
+
+          const validpassword=await userfind.ispasswordCorrect(password) 
+          if(!validpassword) return res.status(401).json({message:"invalid password"}) 
+          
+          const{accesstoken,refreshtoken}=await generateAccessTokenAndRefreshtoken(userfind._id) 
+          const loggedinuser=await User.findById(userfind._id).select("-refreshtoken -password") 
+
+          const options={
+
+            httpOnly:true,
+            secure:true
+          }
+
+          return res.status(200).cookie("Accesstoken",accesstoken,options).cookie("refreshtoken",refreshtoken,options).json(res.status(200).json({
+            userfind:loggedinuser,accesstoken,refreshtoken
+          },
+          "user logged in successfully"
+        ))
+
+
+
+
+
+
+        
+    } catch (error) {
+        console.log("login failed", error);
+        
+        return res.status(500).json({messgae:"login failed"})
+        
+    }
+}
+export {registerUser,loginUser}
