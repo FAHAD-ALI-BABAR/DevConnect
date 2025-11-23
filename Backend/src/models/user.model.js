@@ -42,7 +42,7 @@ UserSchema.methods.ispasswordCorrect=async function(password){
 }
 
 UserSchema.methods.generateAccessToken=async function(){
-    jwt.sign({
+    return jwt.sign({
         _id:this._id,
         Username:this.Username,
         email:this.email
@@ -56,7 +56,7 @@ UserSchema.methods.generateAccessToken=async function(){
 //REFRESH TOKEN KA PAYLOAD MN INFO KAM HOTI HA OR EXPIRY DATE ZIYADA HOTI HA
 
 UserSchema.methods.generateRefreshToken=async function(){
-    jwt.sign({
+    return jwt.sign({
         _id:this._id,
     },
     process.env.REFRESH_TOKEN,

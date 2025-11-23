@@ -26,6 +26,8 @@ const registerUser=async (req,res,next)=>{
    
 
    const avatarlocalpath=await cloudinaryfileupload(uploadedfileonlocalpath);
+   
+   
    if(!avatarlocalpath) return res.status(400).json({messgae:"avatar file is required on cloudinary"});
    console.log("avatar file is on clodinary: ", avatarlocalpath);
    
@@ -59,8 +61,12 @@ return res.status(201).json({
 const generateAccessTokenAndRefreshtoken=async(userId)=>{
     try {
         const user=await User.findById(userId)
-        const accesstoken=user.generateAccessToken()
-        const refreshtoken=user.generateRefreshToken()
+        const accesstoken=await user.generateAccessToken()
+        const refreshtoken=await user.generateRefreshToken()
+        // console.log("acces token is :",accesstoken);
+        // console.log("refresh toekn is ",refreshtoken);
+        
+        
         await user.save({validateBeforeSave:false})
         return {accesstoken,refreshtoken}
 
@@ -73,10 +79,12 @@ const generateAccessTokenAndRefreshtoken=async(userId)=>{
     }
 }
 
-const loginUser=async (req,res)=>{
+const loginUser=async (req,res,next)=>{
     try {
         const {email,password,Username}=req.body
-        if(!email || !Username) return res.status(400).json({message:"please enter email or password"})
+        console.log("info is :" ,req.body);
+        
+        if(!(email || Username)) return res.status(400).json({message:"please enter email or password"})
             const userfind=await User.findOne({
                 $or:[{email:email},{Username:Username}]
             })
@@ -86,7 +94,11 @@ const loginUser=async (req,res)=>{
           const validpassword=await userfind.ispasswordCorrect(password) 
           if(!validpassword) return res.status(401).json({message:"invalid password"}) 
           
-          const{accesstoken,refreshtoken}=await generateAccessTokenAndRefreshtoken(userfind._id) 
+          const{accesstoken,refreshtoken}=await generateAccessTokenAndRefreshtoken(userfind._id)
+        //   console.log("access token is :", accesstoken);
+        //   console.log("refresh token is :",refreshtoken);
+          
+           
           const loggedinuser=await User.findById(userfind._id).select("-refreshtoken -password") 
 
           const options={
@@ -95,16 +107,15 @@ const loginUser=async (req,res)=>{
             secure:true
           }
 
-          return res.status(200).cookie("Accesstoken",accesstoken,options).cookie("refreshtoken",refreshtoken,options).json(res.status(200).json({
-            userfind:loggedinuser,accesstoken,refreshtoken
-          },
-          "user logged in successfully"
-        ))
-
-
-
-
-
+                  return res.status(200)
+            .cookie("Accesstoken", accesstoken, options)
+            .cookie("refreshtoken", refreshtoken, options)
+            .json({
+                message: "User logged in successfully",
+                user: loggedinuser,
+                accesstoken,
+                refreshtoken
+            })
 
         
     } catch (error) {
@@ -114,4 +125,26 @@ const loginUser=async (req,res)=>{
         
     }
 }
-export {registerUser,loginUser}
+
+
+const logoutUser=async (req,res)=>{
+   const userid= req.user?._id
+  await User.findByIdAndUpdate(userid,{
+    $set:[{
+        refreshtoken:undefined
+    },
+    {
+        new:true
+    }
+]
+ })
+ const options={
+
+            httpOnly:true,
+            secure:true
+          }
+ return res.status(200).clearcookie("Accesstoken",options).clearcookie("refreshtoken",options).json({message:"user loggedout successfully"})
+
+}
+
+export {registerUser,loginUser,logoutUser}
