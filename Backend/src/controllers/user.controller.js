@@ -130,20 +130,25 @@ const loginUser=async (req,res,next)=>{
 const logoutUser=async (req,res)=>{
    const userid= req.user?._id
   await User.findByIdAndUpdate(userid,{
-    $set:[{
+    $set:{
         refreshtoken:undefined
-    },
+    }
+},
     {
         new:true
     }
-]
- })
+
+)
  const options={
 
             httpOnly:true,
             secure:true
           }
- return res.status(200).clearcookie("Accesstoken",options).clearcookie("refreshtoken",options).json({message:"user loggedout successfully"})
+ 
+ return res.status(200)
+            .clearCookie("Accesstoken", options)
+            .clearCookie("refreshtoken", options)
+            .json({ message: "User logged out successfully" });
 
 }
 
