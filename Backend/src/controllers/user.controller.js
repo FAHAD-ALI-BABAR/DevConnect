@@ -1,5 +1,6 @@
 import {cloudinaryfileupload} from "../utils/cloudinary.js"
 import { User } from "../models/user.model.js";
+import jwt from "jsonwebtoken"
 const registerUser=async (req,res,next)=>{
     try {
         const {Username,email,password,avatar}=req.body;
@@ -152,4 +153,31 @@ const logoutUser=async (req,res)=>{
 
 }
 
-export {registerUser,loginUser,logoutUser}
+const newrefreshaccesstoken=async (req,res)=>{
+    const incomingrefreshtoken=req.cookies.refreshtoken || req.body.refreshtoken
+    if(!incomingrefreshtoken) return res.status(401).json({message:"unauthorized request"})
+       try {
+         const decodedtoken=jwt.verify(token,process.env.REFRESH_TOKEN)
+     const user=await User.findById(decodedtoken?._id)
+     if(!user) return res.status(401).json({message:"invalid refreshtoken"})
+         if(incomingrefreshtoken !==user.refreshtoken) return res.status(401).json({message:"refresh token is expired or used"})
+             const options={
+         httpOnly:true,
+     secure:true
+ }
+  const {accesstoken,newrefreshtoken}=await generateAccessTokenAndRefreshtoken(user._id)
+   return res.status(200)
+             .cookie("Accesstoken", accesstoken, options)
+             .cookie("refreshtoken", newrefreshtoken, options)
+             .json({
+                 message: "access token refreshed successfully",
+                 accesstoken,
+                 refreshtoken:newrefreshtoken
+             })
+       } catch (error) {
+        return res.status(401).json({messgae:"invalid refresh token"});
+        
+       }
+
+}
+export {registerUser,loginUser,logoutUser,newrefreshaccesstoken}
