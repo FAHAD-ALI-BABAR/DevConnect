@@ -157,7 +157,7 @@ const newrefreshaccesstoken=async (req,res)=>{
     const incomingrefreshtoken=req.cookies.refreshtoken || req.body.refreshtoken
     if(!incomingrefreshtoken) return res.status(401).json({message:"unauthorized request"})
        try {
-         const decodedtoken=jwt.verify(token,process.env.REFRESH_TOKEN)
+         const decodedtoken=jwt.verify(incomingrefreshtoken,process.env.REFRESH_TOKEN)
      const user=await User.findById(decodedtoken?._id)
      if(!user) return res.status(401).json({message:"invalid refreshtoken"})
          if(incomingrefreshtoken !==user.refreshtoken) return res.status(401).json({message:"refresh token is expired or used"})
