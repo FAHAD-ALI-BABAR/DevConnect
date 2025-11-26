@@ -1,6 +1,26 @@
 import React from 'react'
-
+import {UseauthStore} from "../../stores/auth.js"
 const Register = () => {
+   const [formData, setFormData] = useState({
+    Username: '',
+    email: '',
+    password: '',
+    avatar: null
+  });
+    const {register,isloading,error}=UseauthStore();
+    const handlesubmit=async(e)=>{
+      e.preventDefault();
+      if(!formData.Username || !formData.email || !formData.password){
+        alert("please enter all fields")
+        return
+      }
+      const registeruser=await register(formData);
+      if(registeruser.success){
+        console.log("registration successfull");
+        
+      }
+
+    }
   return (
      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -19,7 +39,7 @@ const Register = () => {
           </p>
         </div>
         
-        <form className="mt-8 space-y-6">
+        <form onSubmit={handlesubmit} className="mt-8 space-y-6">
           <div className="rounded-md shadow-sm space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -27,11 +47,13 @@ const Register = () => {
                   First name
                 </label>
                 <input
-                  id="firstName"
-                  name="firstName"
+                  id="Username"
+                  name="Username"
+                  value={formData.Username}
+                  disabled={isloading}
                   type="text"
                   className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors duration-200"
-                  placeholder="First name"
+                  placeholder="Username"
                 />
               </div>
               
@@ -57,6 +79,8 @@ const Register = () => {
                 id="email"
                 name="email"
                 type="email"
+                value={formData.value}
+                disabled={isloading}
                 className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors duration-200"
                 placeholder="Enter your email"
               />
@@ -70,22 +94,23 @@ const Register = () => {
                 id="password"
                 name="password"
                 type="password"
+                value={formData.password}
+                disabled={isloading}
                 className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors duration-200"
                 placeholder="Create a password"
               />
             </div>
             
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors duration-200"
-                placeholder="Confirm your password"
-              />
+               <label htmlFor="avatar">Profile Picture (Optional)</label>
+          <input
+            id="avatar"
+            type="file"
+            name="avatar"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={isloading}
+          />
             </div>
           </div>
 
@@ -103,14 +128,20 @@ const Register = () => {
               </span>
             </label>
           </div>
+            {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
 
           <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105 cursor-pointer"
-            >
-              Create account
-            </button>
+             <button 
+          type="submit" 
+          disabled={isloading}
+          className="submit-btn"
+        >
+          {isloading ? 'Creating Account...' : 'Register'}
+        </button>
           </div>
         </form>
       </div>
